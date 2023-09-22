@@ -1,42 +1,43 @@
 package org.example;
 
+import java.util.Arrays;
 import java.util.Objects;
 
 public class StringListImpl implements StringList {
 
-    private static final int INITIAL_SIZE = 15;
+    private static final int INITIAL_LENGTH = 10;
 
     private final String[] data;
-    private int capacity;
+    private int size;
 
     public StringListImpl() {
-        this(INITIAL_SIZE);
+        this(INITIAL_LENGTH);
     }
 
     public StringListImpl(int n) {
-        if (n <= 0) {
-            throw new IllegalArgumentException("Размер списка должен быть положительным!");
-        }
+        checkNonNegativeIndex(n);
         data = new String[n];
-        capacity = 0;
+        size = 0;
     }
 
     @Override
     public String add(String item) {
-        return add(capacity, item);
+        return add(size, item);
     }
 
     @Override
     public String add(int index, String item) {
-        if (capacity >= data.length) {
+        if (size >= data.length) {
             throw new IllegalArgumentException("Список полон!");
         }
         checkNotNull(item);
         checkNonNegativeIndex(index);
         checkIndex(index, false);
-        System.arraycopy(data, index, data, index + 1, capacity - index);
+        if (index < size){
+            System.arraycopy(data, index, data, index + 1, size - index);
+        }
         data[index] = item;
-        capacity++;
+        size++;
         return item;
     }
 
@@ -62,8 +63,8 @@ public class StringListImpl implements StringList {
         checkNonNegativeIndex(index);
         checkIndex(index, true);
         String removed = data[index];
-        System.arraycopy(data, index + 1, data, index, capacity - 1 - index);
-        data[--capacity] = null;
+        System.arraycopy(data, index + 1, data, index, size - 1 - index);
+        data[--size] = null;
         return removed;
     }
 
@@ -76,10 +77,9 @@ public class StringListImpl implements StringList {
     public int indexOf(String item) {
         checkNotNull(item);
         int index = -1;
-        for (int i = 0; i < capacity; i++) {
+        for (int i = 0; i < size; i++) {
             if (data[i].equals(item)) {
-                index = i;
-                break;
+                return i;
             }
         }
         return index;
@@ -89,7 +89,7 @@ public class StringListImpl implements StringList {
     public int lastIndexOf(String item) {
         checkNotNull(item);
         int index = -1;
-        for (int i = capacity - 1; i >= 0; i--) {
+        for (int i = size - 1; i >= 0; i--) {
             if (data[i].equals(item)) {
                 index = i;
                 break;
@@ -110,17 +110,23 @@ public class StringListImpl implements StringList {
         if (size() != otherList.size()) {
             return false;
         }
-        for (int i = 0; i < capacity; i++) {
+        for (int i = 0; i < size; i++) {
             if (!data[i].equals(otherList.get(i))) {
                 return false;
             }
         }
         return true;
     }
+//    @Override
+//    public int hashCode() {
+//        int result = Objects.hash(size);
+//        result = 31 * result + Arrays.hashCode(data);
+//        return result;
+//    }
 
     @Override
     public int size() {
-        return capacity;
+        return size;
     }
 
     @Override
@@ -130,16 +136,17 @@ public class StringListImpl implements StringList {
 
     @Override
     public void clear() {
-        for (int i = 0; i < capacity; i++) {
-            data[i] = null;
-        }
-        capacity = 0;
+        Arrays.fill(data,null);
+//        for (int i = 0; i < size; i++) {
+//            data[i] = null;
+//        }
+        size = 0;
     }
 
     @Override
     public String[] toArray() {
-        String[] result = new String[capacity];
-        System.arraycopy(data, 0, result, 0, capacity);
+        String[] result = new String[size];
+        System.arraycopy(data, 0, result, 0, size);
         return result;
     }
 
@@ -156,9 +163,9 @@ public class StringListImpl implements StringList {
     }
 
     private void checkIndex(int index, boolean includeEquality) {
-        boolean expression = includeEquality ? index >= capacity : index > capacity;
+        boolean expression = includeEquality ? index >= size : index > size;
         if (expression) {
-            throw new IllegalArgumentException("Индекс: " + index + ", Размер: " + capacity);
+            throw new IllegalArgumentException("Индекс: " + index + ", Размер: " + size);
         }
     }
 
